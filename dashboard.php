@@ -1,290 +1,421 @@
 <?php
 session_start();
 
-include("includes/db.php");
-include("includes/header.php");
-
-if(!isset($_SESSION['user_id']))
+if(!isset($_SESSION['admin']))
 {
-    header("Location: login.php");
+    header("Location: admin_login.php");
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
+include("../includes/db.php");
+include("header.php");
 
 /* ===========================
-   DASHBOARD COUNTS
+   DASHBOARD STATISTICS
 =========================== */
 
-$total_count = mysqli_num_rows(mysqli_query($conn,"
-SELECT * FROM policy_applications
-WHERE user_id='$user_id'
-"));
+$total_users = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) total FROM users"))['total'];
 
-$pending_count = mysqli_num_rows(mysqli_query($conn,"
-SELECT * FROM policy_applications
-WHERE user_id='$user_id'
-AND status='Pending'
-"));
+$total_policies = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) total FROM policy_applications"))['total'];
 
-$approved_count = mysqli_num_rows(mysqli_query($conn,"
-SELECT * FROM policy_applications
-WHERE user_id='$user_id'
-AND status='Approved'
-"));
+$approved = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) total
+FROM policy_applications
+WHERE status='Approved'"))['total'];
 
-$rejected_count = mysqli_num_rows(mysqli_query($conn,"
-SELECT * FROM policy_applications
-WHERE user_id='$user_id'
-AND status='Rejected'
-"));
+$pending = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) total
+FROM policy_applications
+WHERE status='Pending'"))['total'];
 
-$claim_count = mysqli_num_rows(mysqli_query($conn,"
-SELECT * FROM claims
-WHERE user_id='$user_id'
-"));
+$rejected = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) total
+FROM policy_applications
+WHERE status='Rejected'"))['total'];
 
-$notification_count = mysqli_num_rows(mysqli_query($conn,"
-SELECT * FROM notifications
-WHERE user_id='$user_id'
-"));
+$total_claims = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) total
+FROM claims"))['total'];
+
+$pending_claims = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) total
+FROM claims
+WHERE status='Pending'"))['total'];
+
+$total_premium = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT SUM(amount) total
+FROM payments"))['total'];
+
+$messages = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) total
+FROM contact_messages"))['total'];
+
+$pending_documents = mysqli_fetch_assoc(mysqli_query($conn,
+"SELECT COUNT(*) total
+FROM users
+WHERE document_status='Pending'"))['total'];
 
 ?>
 
-<div class="container py-5">
-
-<h2 class="text-center mb-2">
-
-Welcome,
-
-<span class="text-primary">
-
-<?php echo htmlspecialchars($_SESSION['user_name']); ?>
-
-</span>
-
-👋
-
-</h2>
-
-<hr>
+<div class="container-fluid mt-4">
 
 <div class="row">
 
-<div class="col-md-3 mb-3">
-<div class="card shadow text-center">
+<div class="col-md-12">
+
+<div class="card shadow">
+
 <div class="card-body">
+
+<h2>
+🎯 Insurance Management System
+</h2>
+
+<p class="text-muted">
+
+Welcome Admin,
+
+Manage Users, Policies, Payments, Claims and Reports.
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<br>
+
+<div class="row">
+
+<div class="col-md-3 mb-4">
+
+<div class="card bg-primary text-white shadow">
+
+<div class="card-body text-center">
+
+<h5>Total Users</h5>
+
+<h2><?php echo $total_users; ?></h2>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<div class="col-md-3 mb-4">
+
+<div class="card bg-success text-white shadow">
+
+<div class="card-body text-center">
+
 <h5>Total Policies</h5>
-<h2 class="text-primary">
-<?php echo $total_count; ?>
-</h2>
-</div>
-</div>
+
+<h2><?php echo $total_policies; ?></h2>
+
 </div>
 
-<div class="col-md-3 mb-3">
-<div class="card shadow text-center">
-<div class="card-body">
+</div>
+
+</div>
+
+
+
+<div class="col-md-3 mb-4">
+
+<div class="card bg-warning shadow">
+
+<div class="card-body text-center">
+
 <h5>Approved</h5>
-<h2 class="text-success">
-<?php echo $approved_count; ?>
-</h2>
-</div>
-</div>
+
+<h2><?php echo $approved; ?></h2>
+
 </div>
 
-<div class="col-md-3 mb-3">
-<div class="card shadow text-center">
-<div class="card-body">
+</div>
+
+</div>
+
+
+
+<div class="col-md-3 mb-4">
+
+<div class="card bg-danger text-white shadow">
+
+<div class="card-body text-center">
+
 <h5>Pending</h5>
-<h2 class="text-warning">
-<?php echo $pending_count; ?>
-</h2>
-</div>
-</div>
+
+<h2><?php echo $pending; ?></h2>
+
 </div>
 
-<div class="col-md-3 mb-3">
-<div class="card shadow text-center">
-<div class="card-body">
-<h5>Rejected</h5>
-<h2 class="text-danger">
-<?php echo $rejected_count; ?>
-</h2>
-</div>
-</div>
 </div>
 
-<div class="col-md-6 mb-3">
-<div class="card shadow text-center">
-<div class="card-body">
+</div>
+
+</div>
+
+
+
+
+
+<div class="row">
+
+<div class="col-md-3 mb-4">
+
+<div class="card bg-info text-white shadow">
+
+<div class="card-body text-center">
+
 <h5>Total Claims</h5>
-<h2 class="text-info">
-<?php echo $claim_count; ?>
-</h2>
-</div>
-</div>
+
+<h2><?php echo $total_claims; ?></h2>
+
 </div>
 
-<div class="col-md-6 mb-3">
-<div class="card shadow text-center">
-<div class="card-body">
-<h5>Notifications</h5>
-<h2 class="text-dark">
-<?php echo $notification_count; ?>
+</div>
+
+</div>
+
+
+
+<div class="col-md-3 mb-4">
+
+<div class="card bg-secondary text-white shadow">
+
+<div class="card-body text-center">
+
+<h5>Pending Claims</h5>
+
+<h2><?php echo $pending_claims; ?></h2>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<div class="col-md-3 mb-4">
+
+<div class="card bg-dark text-white shadow">
+
+<div class="card-body text-center">
+
+<h5>Total Premium</h5>
+
+<h2>
+
+₹<?php echo ($total_premium)?$total_premium:0; ?>
+
 </h2>
+
 </div>
+
 </div>
+
+</div>
+
+
+
+<div class="col-md-3 mb-4">
+
+<div class="card bg-warning shadow">
+
+<div class="card-body text-center">
+
+<h5>Messages</h5>
+
+<h2><?php echo $messages; ?></h2>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+
+
+<div class="row">
+
+<div class="col-md-4 mb-4">
+
+<div class="card border-success">
+
+<div class="card-body">
+
+<h5>
+
+📄 Pending Document Verification
+
+</h5>
+
+<h2>
+
+<?php echo $pending_documents; ?>
+
+</h2>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<div class="col-md-4 mb-4">
+
+<div class="card border-danger">
+
+<div class="card-body">
+
+<h5>
+
+❌ Rejected Policies
+
+</h5>
+
+<h2>
+
+<?php echo $rejected; ?>
+
+</h2>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<div class="col-md-4 mb-4">
+
+<div class="card border-primary">
+
+<div class="card-body">
+
+<h5>
+
+💰 Revenue
+
+</h5>
+
+<h2>
+
+₹<?php echo ($total_premium)?$total_premium:0; ?>
+
+</h2>
+
+</div>
+
+</div>
+
 </div>
 
 </div>
 
 <hr>
 
-<h3 class="text-center mb-4">
+<h3>
 
-Quick Actions
+⚡ Quick Menu
 
 </h3>
 
 <div class="row">
 
-<div class="col-md-4 mb-3">
+<div class="col-md-3 mb-3">
 
-<a href="plans.php"
-class="btn btn-primary w-100">
+<a href="users.php" class="btn btn-primary w-100">
 
-📋 Apply New Policy
-
-</a>
-
-</div>
-
-<div class="col-md-4 mb-3">
-
-<a href="status.php"
-class="btn btn-success w-100">
-
-📄 Policy Status
+👥 Manage Users
 
 </a>
 
 </div>
 
-<div class="col-md-4 mb-3">
+<div class="col-md-3 mb-3">
 
-<a href="premium_due.php"
-class="btn btn-warning w-100">
+<a href="plans.php" class="btn btn-success w-100">
 
-💳 Premium Payment
-
-</a>
-
-</div>
-
-<div class="col-md-4 mb-3">
-
-<a href="claim.php"
-class="btn btn-danger w-100">
-
-❤️ Claim Insurance
+🛡 Insurance Plans
 
 </a>
 
 </div>
 
-<div class="col-md-4 mb-3">
+<div class="col-md-3 mb-3">
 
-<a href="my_claims.php"
-class="btn btn-secondary w-100">
+<a href="applications.php" class="btn btn-info w-100">
 
-📑 My Claims
-
-</a>
-
-</div>
-
-<div class="col-md-4 mb-3">
-
-<a href="notifications.php"
-class="btn btn-dark w-100">
-
-🔔 Notifications
-
-<?php
-
-if($notification_count>0)
-{
-echo " ($notification_count)";
-}
-
-?>
+📄 Applications
 
 </a>
 
 </div>
 
-<div class="col-md-4 mb-3">
+<div class="col-md-3 mb-3">
 
-<a href="premium_due.php"
-class="btn btn-info w-100 text-white">
+<a href="payments.php" class="btn btn-warning w-100">
 
-💰 Premium Due
-
-</a>
-
-</div>
-
-<div class="col-md-4 mb-3">
-
-<a href="user_chat.php"
-class="btn btn-dark w-100">
-
-💬 Chat With Admin
+💳 Payments
 
 </a>
 
 </div>
 
-<div class="col-md-4 mb-3">
+<div class="col-md-3 mb-3">
 
-<a href="profile.php"
-class="btn btn-primary w-100">
+<a href="claims.php" class="btn btn-danger w-100">
 
-👤 My Profile
-
-</a>
-
-</div>
-
-<div class="col-md-4 mb-3">
-
-<a href="change_password.php"
-class="btn btn-warning w-100">
-
-🔑 Change Password
+❤️ Claims
 
 </a>
 
 </div>
 
-<div class="col-md-4 mb-3">
+<div class="col-md-3 mb-3">
 
-<a href="download_certificate.php"
-class="btn btn-success w-100">
+<a href="chat_users.php" class="btn btn-dark w-100">
 
-📥 Download Policy Certificate
+💬 Chats
 
 </a>
 
 </div>
 
-<div class="col-md-4 mb-3">
+<div class="col-md-3 mb-3">
 
-<a href="download_receipt.php"
-class="btn btn-secondary w-100">
+<a href="contact_messages.php" class="btn btn-secondary w-100">
 
-🧾 Download Payment Receipt
+📩 Messages
+
+</a>
+
+</div>
+
+<div class="col-md-3 mb-3">
+
+<a href="dashboard.php" class="btn btn-success w-100">
+
+🏠 Refresh
 
 </a>
 
@@ -294,25 +425,25 @@ class="btn btn-secondary w-100">
 
 <hr>
 
-<h3 class="text-center mb-4">
+<h3>
 
-Recent Policy Applications
+📄 Recent Policy Applications
 
 </h3>
 
-<div class="table-responsive">
-
-<table class="table table-bordered table-striped">
+<table class="table table-bordered table-hover">
 
 <thead class="table-dark">
 
 <tr>
 
 <th>ID</th>
+
+<th>User</th>
+
 <th>Policy</th>
+
 <th>Status</th>
-<th>Applied Date</th>
-<th>Action</th>
 
 </tr>
 
@@ -322,130 +453,281 @@ Recent Policy Applications
 
 <?php
 
-$recent = mysqli_query($conn,"
+$result=mysqli_query($conn,"
 SELECT
-policy_applications.*,
-insurance_plans.plan_name
+policy_applications.id,
+users.name,
+insurance_plans.plan_name,
+policy_applications.status
 
 FROM policy_applications
 
-INNER JOIN insurance_plans
+JOIN users
+ON users.id=policy_applications.user_id
+
+JOIN insurance_plans
 ON insurance_plans.id=policy_applications.plan_id
 
-WHERE policy_applications.user_id='$user_id'
-
 ORDER BY policy_applications.id DESC
-
-LIMIT 5
+LIMIT 10
 ");
 
-if(mysqli_num_rows($recent)>0)
+while($row=mysqli_fetch_assoc($result))
 {
 
-while($row=mysqli_fetch_assoc($recent))
+$status=$row['status'];
+
+if($status=="Approved")
 {
+$status="<span class='badge bg-success'>Approved</span>";
+}
+elseif($status=="Rejected")
+{
+$status="<span class='badge bg-danger'>Rejected</span>";
+}
+else
+{
+$status="<span class='badge bg-warning text-dark'>Pending</span>";
+}
 
 ?>
-
 <tr>
 
 <td><?php echo $row['id']; ?></td>
 
+<td><?php echo htmlspecialchars($row['name']); ?></td>
+
 <td><?php echo htmlspecialchars($row['plan_name']); ?></td>
 
-<td>
-
-<?php
-
-if($row['status']=="Approved")
-{
-echo "<span class='badge bg-success'>Approved</span>";
-}
-elseif($row['status']=="Rejected")
-{
-echo "<span class='badge bg-danger'>Rejected</span>";
-}
-else
-{
-echo "<span class='badge bg-warning text-dark'>Pending</span>";
-}
-
-?>
-
-</td>
-
-<td>
-
-<?php
-
-if(isset($row['created_at']))
-{
-    echo $row['created_at'];
-}
-else
-{
-    echo "-";
-}
-
-?>
-
-</td>
-
-<td>
-
-<a
-href="status.php"
-class="btn btn-primary btn-sm">
-
-View
-
-</a>
-
-</td>
+<td><?php echo $status; ?></td>
 
 </tr>
 
 <?php
-
 }
-
-}
-else
-{
-
-?>
-
-<tr>
-
-<td colspan="5" class="text-center">
-
-No Applications Found
-
-</td>
-
-</tr>
-
-<?php
-
-}
-
 ?>
 
 </tbody>
 
 </table>
 
-</div>
+<hr>
+
+<h3 class="mt-5">
+
+👥 Recently Registered Users
+
+</h3>
+
+<table class="table table-bordered table-striped">
+
+<thead class="table-primary">
+
+<tr>
+
+<th>ID</th>
+
+<th>Name</th>
+
+<th>Email</th>
+
+<th>Phone</th>
+
+<th>Email Verified</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<?php
+
+$users=mysqli_query($conn,"
+SELECT *
+FROM users
+ORDER BY id DESC
+LIMIT 10
+");
+
+while($u=mysqli_fetch_assoc($users))
+{
+
+?>
+
+<tr>
+
+<td><?php echo $u['id']; ?></td>
+
+<td><?php echo htmlspecialchars($u['name']); ?></td>
+
+<td><?php echo htmlspecialchars($u['email']); ?></td>
+
+<td><?php echo htmlspecialchars($u['phone']); ?></td>
+
+<td>
+
+<?php
+
+if(isset($u['email_verified']) && $u['email_verified']=="Yes")
+{
+    echo "<span class='badge bg-success'>Verified</span>";
+}
+else
+{
+    echo "<span class='badge bg-danger'>Not Verified</span>";
+}
+
+?>
+
+</td>
+
+</tr>
+
+<?php } ?>
+
+</tbody>
+
+</table>
 
 <hr>
 
-<div class="text-center mt-4">
+<h3 class="mt-5">
 
-<a
-href="logout.php"
-class="btn btn-danger btn-lg">
+💳 Recent Premium Payments
 
-🚪 Logout
+</h3>
+
+<table class="table table-bordered table-hover">
+
+<thead class="table-success">
+
+<tr>
+
+<th>ID</th>
+
+<th>User ID</th>
+
+<th>Amount</th>
+
+<th>Method</th>
+
+<th>Status</th>
+
+<th>Date</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<?php
+
+$payments=mysqli_query($conn,"
+SELECT *
+FROM payments
+ORDER BY id DESC
+LIMIT 10
+");
+
+while($pay=mysqli_fetch_assoc($payments))
+{
+
+?>
+
+<tr>
+
+<td><?php echo $pay['id']; ?></td>
+
+<td><?php echo $pay['user_id']; ?></td>
+
+<td>₹<?php echo $pay['amount']; ?></td>
+
+<td><?php echo htmlspecialchars($pay['payment_method']); ?></td>
+
+<td>
+
+<?php
+
+$status = isset($pay['payment_status'])
+            ? $pay['payment_status']
+            : (isset($pay['status']) ? $pay['status'] : 'Success');
+
+if($status=="Success")
+{
+    echo "<span class='badge bg-success'>Success</span>";
+}
+elseif($status=="Pending")
+{
+    echo "<span class='badge bg-warning text-dark'>Pending</span>";
+}
+else
+{
+    echo "<span class='badge bg-danger'>Failed</span>";
+}
+
+?>
+
+</td>
+
+<td>
+
+<?php
+echo isset($pay['payment_date'])
+        ? $pay['payment_date']
+        : "-";
+?>
+
+</td>
+
+</tr>
+
+<?php } ?>
+
+</tbody>
+
+</table>
+
+<hr>
+
+<div class="row mt-4 mb-5">
+
+<div class="col-md-3">
+
+<a href="users.php" class="btn btn-primary w-100">
+
+👥 Users
+
+</a>
+
+</div>
+
+<div class="col-md-3">
+
+<a href="applications.php" class="btn btn-success w-100">
+
+📄 Applications
+
+</a>
+
+</div>
+
+<div class="col-md-3">
+
+<a href="claims.php" class="btn btn-danger w-100">
+
+❤️ Claims
+
+</a>
+
+</div>
+
+<div class="col-md-3">
+
+<a href="payments.php" class="btn btn-warning w-100">
+
+💳 Payments
 
 </a>
 
@@ -453,4 +735,6 @@ class="btn btn-danger btn-lg">
 
 </div>
 
-<?php include("includes/footer.php"); ?>
+</div>
+
+<?php include("footer.php"); ?>

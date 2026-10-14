@@ -1,126 +1,93 @@
 <?php
-
 session_start();
+include("../includes/db.php");
 
-include("includes/db.php");
-include("includes/header.php");
+if(!isset($_SESSION['admin']))
+{
+    header("Location: admin_login.php");
+    exit();
+}
 
-$sql="
-
-SELECT *
-
-FROM insurance_plans
-
-ORDER BY premium ASC
-
-";
-
-$result=mysqli_query($conn,$sql);
-
+$result = mysqli_query($conn,"SELECT * FROM insurance_plans");
 ?>
 
-<div class="container mt-5 mb-5">
+<!DOCTYPE html>
+<html>
 
-<h2 class="text-center mb-5">
+<head>
 
-🛡 Available Insurance Plans
+<title>Insurance Plans</title>
 
-</h2>
+<link rel="stylesheet" href="../css/style.css">
 
-<div class="row">
+</head>
+
+<body>
+
+<h1 align="center">Insurance Plans</h1>
+
+<br>
+
+<center>
+
+<a href="add_plan.php" class="btn">+ Add New Plan</a>
+
+</center>
+
+<br>
+
+<table border="1" width="100%" cellpadding="10">
+
+<tr style="background:#003366;color:white;">
+
+<th>ID</th>
+
+<th>Plan Name</th>
+
+<th>Description</th>
+
+<th>Premium</th>
+
+<th>Duration</th>
+
+<th>Coverage</th>
+
+<th>Action</th>
+
+</tr>
 
 <?php
-
-if(mysqli_num_rows($result)>0)
-{
 
 while($row=mysqli_fetch_assoc($result))
 {
 
 ?>
 
-<div class="col-lg-4 col-md-6 mb-4">
+<tr>
 
-<div class="card shadow h-100">
+<td><?php echo $row['id']; ?></td>
 
-<div class="card-header bg-primary text-white text-center">
+<td><?php echo $row['plan_name']; ?></td>
 
-<h4>
+<td><?php echo $row['description']; ?></td>
 
-<?php echo htmlspecialchars($row['plan_name']); ?>
+<td>₹<?php echo $row['premium']; ?></td>
 
-</h4>
+<td><?php echo $row['duration']; ?></td>
 
-</div>
+<td><?php echo $row['coverage']; ?></td>
 
-<div class="card-body">
+<td>
 
-<p>
+<a href="edit_plan.php?id=<?php echo $row['id']; ?>">Edit</a>
 
-<?php echo nl2br(htmlspecialchars($row['description'])); ?>
+|
 
-</p>
+<a href="delete_plan.php?id=<?php echo $row['id']; ?>">Delete</a>
 
-<hr>
+</td>
 
-<p>
-
-<b>Premium</b><br>
-
-₹ <?php echo number_format($row['premium']); ?>
-
-</p>
-
-<p>
-
-<b>Duration</b><br>
-
-<?php echo htmlspecialchars($row['duration']); ?>
-
-</p>
-
-<p>
-
-<b>Coverage Amount</b><br>
-
-₹ <?php echo htmlspecialchars($row['coverage']); ?>
-
-</p>
-
-<hr>
-
-<div class="d-grid gap-2">
-
-<?php
-
-if(isset($_SESSION['user_id']))
-{
-
-?>
-
-<a
-href="apply.php?id=<?php echo $row['id']; ?>"
-class="btn btn-success">
-
-📝 Apply Now
-
-</a>
-
-<?php
-
-}
-else
-{
-
-?>
-
-<a
-href="login.php"
-class="btn btn-warning">
-
-🔐 Login to Apply
-
-</a>
+</tr>
 
 <?php
 
@@ -128,64 +95,16 @@ class="btn btn-warning">
 
 ?>
 
-<a
-href="policy_details.php?id=<?php echo $row['id']; ?>"
-class="btn btn-outline-primary">
+</table>
 
-📄 View Details
+<br>
 
-</a>
+<center>
 
-</div>
+<a href="dashboard.php" class="btn">Back to Dashboard</a>
 
-</div>
+</center>
 
-</div>
+</body>
 
-</div>
-
-<?php
-
-}
-
-}
-else
-{
-
-?>
-
-<div class="col-12">
-
-<div class="alert alert-warning text-center">
-
-<h4>No Insurance Plans Available</h4>
-
-<p>Please check back later.</p>
-
-</div>
-
-</div>
-
-<?php
-
-}
-
-?>
-
-</div>
-
-<div class="text-center mt-4">
-
-<a
-href="index.php"
-class="btn btn-secondary">
-
-🏠 Back to Home
-
-</a>
-
-</div>
-
-</div>
-
-<?php include("includes/footer.php"); ?>
+</html>
